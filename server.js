@@ -43,10 +43,10 @@ app.post("/upload", upload.single("image"), async (req, res) => {
 Return ONLY the correct option number.
 
 Examples:
-1
-2
-3
-4
+1 the answer ...etc
+2 the answer ...etc
+3 the answer ...etc
+4 the answer ...etc
 
 No explanation.
 No reasoning.
