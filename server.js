@@ -38,7 +38,7 @@ app.post("/upload", upload.single("image"), async (req, res) => {
             },
             {
               type: "text",
-              text: "est..."
+              text: "Analyze the image and give me the answer along with the answer number only."
             }
           ]
         }
@@ -54,7 +54,7 @@ app.post("/upload", upload.single("image"), async (req, res) => {
     console.error(err);
 
     res.json({
-      answer: "est..."
+      answer: "Error..."
     });
   }
 });
