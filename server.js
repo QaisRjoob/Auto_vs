@@ -38,20 +38,19 @@ app.post("/upload", upload.single("image"), async (req, res) => {
             },
             {
               type: "text",
-              text: `Analyze the image and give me the answer along with the answer number only.  You are solving a multiple-choice question.
+              text: `Analyze the image and give me the answer along with the answer number only.  You are solving a multiple-choice question from an image.
 
-Return ONLY the correct option number.
+Output format:
+<number>. <answer text>
 
-Examples:
-1 the answer ...etc
-2 the answer ...etc
-3 the answer ...etc
-4 the answer ...etc
+Example:
+3. Mitigate Moral Hazard
 
-No explanation.
-No reasoning.
-No extra text.
-Only a single number.`
+Return only the final answer.
+Do not explain your reasoning.
+Do not analyze the question.
+Do not write complete sentences.
+Do not include any text besides the answer.`
             }
           ]
         }
