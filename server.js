@@ -38,7 +38,20 @@ app.post("/upload", upload.single("image"), async (req, res) => {
             },
             {
               type: "text",
-              text: "Analyze the image and give me the answer along with the answer number only."
+              text: `Analyze the image and give me the answer along with the answer number only.  You are solving a multiple-choice question.
+
+Return ONLY the correct option number.
+
+Examples:
+1
+2
+3
+4
+
+No explanation.
+No reasoning.
+No extra text.
+Only a single number.`
             }
           ]
         }
