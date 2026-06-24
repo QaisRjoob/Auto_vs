@@ -1,26 +1,62 @@
 const express = require("express");
 const multer = require("multer");
 const cors = require("cors");
+const Anthropic = require("@anthropic-ai/sdk");
 
 const app = express();
+
 app.use(cors());
 
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({
+  storage: multer.memoryStorage()
+});
 
-// ===== AI endpoint (mock for now) =====
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY
+});
+
 app.post("/upload", upload.single("image"), async (req, res) => {
-    if (!req.file) {
-        return res.json({ answer: "No image received" });
-    }
 
-    console.log("Image received:", req.file.size, "bytes");
+  try {
 
-    // Mock response — AI integration goes here next
-    res.json({
-        answer: "تم استلام الصورة، الربط مع AI جاهز بالخطوة التالية 🔥"
+    const imageBase64 = req.file.buffer.toString("base64");
+
+    const response = await anthropic.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 1000,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: req.file.mimetype,
+                data: imageBase64
+              }
+            },
+            {
+              type: "text",
+              text: "est..."
+            }
+          ]
+        }
+      ]
     });
+
+    res.json({
+      answer: response.content[0].text
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.json({
+      answer: "est..."
+    });
+  }
 });
 
-app.listen(3000, () => {
-    console.log("Server running on port 3000");
-});
+app.listen(process.env.PORT || 3000);
