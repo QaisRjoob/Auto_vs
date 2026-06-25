@@ -99,16 +99,17 @@ app.post("/upload", upload.single("image"), async (req, res) => {
 
     const prompt = `You are an expert in mathematics, finance, and economics. You are solving a multiple-choice exam question.
 
-Think through the problem internally, then respond with ONE LINE ONLY.
+After thinking, respond with ONE LINE ONLY.
 
 Output format: <number>. <answer text>
 Example: 3. 42.5%
 
-YOUR ENTIRE RESPONSE MUST BE A SINGLE LINE. No explanation. No steps. No reasoning. Just the answer line.`;
+YOUR ENTIRE RESPONSE MUST BE A SINGLE LINE. No explanation. No steps. Just the answer line.`;
 
     const response = await anthropic.messages.create({
       model: "claude-opus-4-8",
-      max_tokens: 50,
+      max_tokens: 8000,
+      thinking: { type: "enabled", budget_tokens: 7000 },
       messages: [{
         role: "user",
         content: [
@@ -118,7 +119,8 @@ YOUR ENTIRE RESPONSE MUST BE A SINGLE LINE. No explanation. No steps. No reasoni
       }]
     });
 
-    const raw = response.content[0].text.trim();
+    const textBlock = response.content.find(b => b.type === "text");
+    const raw = (textBlock ? textBlock.text : "").trim();
     const match = raw.match(/\d+\.\s+.+/);
     const answer = match ? match[0].trim() : raw.split("\n")[0].trim();
 
