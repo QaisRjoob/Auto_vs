@@ -113,7 +113,7 @@ Example: 3. 42.5%
 Return ONLY the answer number and text. Nothing else.`;
 
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
+      model: "claude-opus-4-8",
       max_tokens: 100,
       messages: [{
         role: "user",
