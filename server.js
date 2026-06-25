@@ -97,21 +97,42 @@ app.post("/upload", upload.single("image"), async (req, res) => {
     const imageBase64 = req.file.buffer.toString("base64");
     const mediaType = req.file.mimetype;
 
-    const prompt = `You are an expert exam solver. This is a multiple-choice question that may require calculation, formula application, or conceptual reasoning.
+    // Step 1: extract question text to search slides
+    let contextText = "";
 
-Steps to follow mentally:
-1. Read the question carefully
-2. If it requires calculation, solve it step by step in your head
-3. Evaluate each option
-4. Pick the correct one
+    if (fs.existsSync(CHUNKS_PATH)) {
+      const chunks = JSON.parse(fs.readFileSync(CHUNKS_PATH, "utf-8"));
 
-Output format:
-<number>. <answer text>
+      if (chunks.length > 0) {
+        const extractRes = await anthropic.messages.create({
+          model: "claude-sonnet-4-6",
+          max_tokens: 200,
+          messages: [{
+            role: "user",
+            content: [
+              { type: "image", source: { type: "base64", media_type: mediaType, data: imageBase64 } },
+              { type: "text", text: "Extract the question text and all answer options from this image. Return only the raw text, nothing else." }
+            ]
+          }]
+        });
 
-Example:
-3. 42.5%
+        const questionText = extractRes.content[0].text;
+        console.log("Extracted:", questionText);
+        console.log("Extract usage:", { input: extractRes.usage.input_tokens, output: extractRes.usage.output_tokens });
 
-Return ONLY the final answer. No explanation. No steps. No extra text.`;
+        const topChunks = searchChunks(questionText, chunks, 3);
+        console.log(`Matched ${topChunks.length} chunks`);
+
+        if (topChunks.length > 0) {
+          contextText = topChunks.map(c => `[${c.source}]\n${c.text}`).join("\n\n---\n\n");
+        }
+      }
+    }
+
+    // Step 2: answer using slide context + math reasoning
+    const prompt = contextText
+      ? `You are an expert exam solver. Use the following material from the course slides as your reference:\n\n${contextText}\n\n---\n\nNow look at the question in the image. Based on the slides above:\n- If it requires calculation, apply the relevant formula\n- If it is conceptual, use the definitions from the slides\n- Evaluate all options and pick the correct one\n\nOutput format:\n<number>. <answer text>\n\nReturn ONLY the final answer. No explanation. No steps.`
+      : `You are an expert exam solver. This question may require calculation or conceptual reasoning.\nSolve it carefully, evaluate all options, and pick the correct one.\n\nOutput format:\n<number>. <answer text>\n\nReturn ONLY the final answer. No explanation. No steps.`;
 
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
@@ -119,10 +140,7 @@ Return ONLY the final answer. No explanation. No steps. No extra text.`;
       messages: [{
         role: "user",
         content: [
-          {
-            type: "image",
-            source: { type: "base64", media_type: mediaType, data: imageBase64 }
-          },
+          { type: "image", source: { type: "base64", media_type: mediaType, data: imageBase64 } },
           { type: "text", text: prompt }
         ]
       }]
