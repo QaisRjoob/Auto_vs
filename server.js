@@ -97,52 +97,21 @@ app.post("/upload", upload.single("image"), async (req, res) => {
     const imageBase64 = req.file.buffer.toString("base64");
     const mediaType = req.file.mimetype;
 
-    let contextText = "";
+    const prompt = `You are an expert exam solver. This is a multiple-choice question that may require calculation, formula application, or conceptual reasoning.
 
-    // Use RAG only if chunks.json exists and has data
-    if (fs.existsSync(CHUNKS_PATH)) {
-      const chunks = JSON.parse(fs.readFileSync(CHUNKS_PATH, "utf-8"));
+Steps to follow mentally:
+1. Read the question carefully
+2. If it requires calculation, solve it step by step in your head
+3. Evaluate each option
+4. Pick the correct one
 
-      if (chunks.length > 0) {
-        // Step 1: Extract the question text from the screenshot
-        const extractRes = await anthropic.messages.create({
-          model: "claude-sonnet-4-6",
-          max_tokens: 300,
-          messages: [{
-            role: "user",
-            content: [
-              {
-                type: "image",
-                source: { type: "base64", media_type: mediaType, data: imageBase64 }
-              },
-              {
-                type: "text",
-                text: "Extract the question text from this image. Return only the raw question text, nothing else."
-              }
-            ]
-          }]
-        });
+Output format:
+<number>. <answer text>
 
-        const questionText = extractRes.content[0].text;
-        console.log("Extracted question:", questionText);
-        console.log("Extract usage:", { input: extractRes.usage.input_tokens, output: extractRes.usage.output_tokens });
+Example:
+3. 42.5%
 
-        // Step 2: Find best matching chunks
-        const topChunks = searchChunks(questionText, chunks, 5);
-        console.log(`Found ${topChunks.length} relevant chunks`);
-
-        if (topChunks.length > 0) {
-          contextText = topChunks
-            .map(c => `[${c.source}]\n${c.text}`)
-            .join("\n\n---\n\n");
-        }
-      }
-    }
-
-    // Step 3: Ask Claude to answer using the context (or directly if no context)
-    const prompt = contextText
-      ? `You are solving a multiple-choice question. Use the following material from the course as reference:\n\n${contextText}\n\n---\n\nNow look at the image and answer the multiple-choice question.\n\nOutput format:\n<number>. <answer text>\n\nReturn only the final answer. No explanation. No reasoning.`
-      : `You are solving a multiple-choice question from an image.\n\nOutput format:\n<number>. <answer text>\n\nExample:\n3. Mitigate Moral Hazard\n\nReturn only the final answer. No explanation. No reasoning. No extra text.`;
+Return ONLY the final answer. No explanation. No steps. No extra text.`;
 
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
