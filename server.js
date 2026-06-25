@@ -142,11 +142,11 @@ app.post("/upload", upload.single("image"), async (req, res) => {
     // Step 3: Ask Claude to answer using the context (or directly if no context)
     const prompt = contextText
       ? `You are solving a multiple-choice question. Use the following material from the course as reference:\n\n${contextText}\n\n---\n\nNow look at the image and answer the multiple-choice question.\n\nOutput format:\n<number>. <answer text>\n\nReturn only the final answer. No explanation. No reasoning.`
-      : `Analyze the image and give me the answer along with the answer number only. You are solving a multiple-choice question from an image.\n\nOutput format:\n<number>. <answer text>\n\nExample:\n3. Mitigate Moral Hazard\n\nReturn only the final answer.\nDo not explain your reasoning.\nDo not analyze the question.\nDo not write complete sentences.\nDo not include any text besides the answer.`;
+      : `You are solving a multiple-choice question from an image.\n\nOutput format:\n<number>. <answer text>\n\nExample:\n3. Mitigate Moral Hazard\n\nReturn only the final answer. No explanation. No reasoning. No extra text.`;
 
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 1000,
+      max_tokens: 100,
       messages: [{
         role: "user",
         content: [
