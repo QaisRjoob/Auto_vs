@@ -108,8 +108,9 @@ YOUR ENTIRE RESPONSE MUST BE A SINGLE LINE. No explanation. No steps. Just the a
 
     const response = await anthropic.messages.create({
       model: "claude-opus-4-8",
-      max_tokens: 8000,
-      thinking: { type: "enabled", budget_tokens: 7000 },
+      max_tokens: 4000,
+      thinking: { type: "adaptive" },
+      output_config: { effort: "high" },
       messages: [{
         role: "user",
         content: [
