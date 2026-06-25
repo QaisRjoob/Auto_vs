@@ -125,6 +125,7 @@ app.post("/upload", upload.single("image"), async (req, res) => {
 
         const questionText = extractRes.content[0].text;
         console.log("Extracted question:", questionText);
+        console.log("Extract usage:", { input: extractRes.usage.input_tokens, output: extractRes.usage.output_tokens });
 
         // Step 2: Find best matching chunks
         const topChunks = searchChunks(questionText, chunks, 5);
@@ -158,6 +159,7 @@ app.post("/upload", upload.single("image"), async (req, res) => {
       }]
     });
 
+    console.log("Answer usage:", { input: response.usage.input_tokens, output: response.usage.output_tokens });
     res.json({ answer: response.content[0].text });
 
   } catch (err) {
