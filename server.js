@@ -20,8 +20,8 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY
 });
 
-// Split text into overlapping chunks (~500 words each, 50-word overlap)
-function splitIntoChunks(text, chunkSize = 500, overlap = 50) {
+// Split text into overlapping chunks (~200 words each, 30-word overlap)
+function splitIntoChunks(text, chunkSize = 200, overlap = 30) {
   const words = text.split(/\s+/).filter(Boolean);
   const chunks = [];
   let i = 0;
@@ -120,7 +120,7 @@ app.post("/upload", upload.single("image"), async (req, res) => {
         console.log("Extracted:", questionText);
         console.log("Extract usage:", { input: extractRes.usage.input_tokens, output: extractRes.usage.output_tokens });
 
-        const topChunks = searchChunks(questionText, chunks, 3);
+        const topChunks = searchChunks(questionText, chunks, 5);
         console.log(`Matched ${topChunks.length} chunks`);
 
         if (topChunks.length > 0) {

@@ -10,7 +10,7 @@ if (!PDFS_FOLDER) {
   process.exit(1);
 }
 
-function splitIntoChunks(text, chunkSize = 500, overlap = 50) {
+function splitIntoChunks(text, chunkSize = 200, overlap = 30) {
   const words = text.split(/\s+/).filter(Boolean);
   const chunks = [];
   let i = 0;
